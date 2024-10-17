@@ -5,53 +5,71 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return Product::all();
+        try {
+            $products = Product::all();
+            return response()->json([
+                'message' => 'Productos obtenidos con éxito.',
+                'data' => $products
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener productos.'], 500);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'code' => 'required|unique:products',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-        ]);
-
-        $product = Product::create($request->all());
-        return response()->json($product, 201);
+        try {
+            $product = Product::create($request->validated());
+            return response()->json([
+                'message' => '¡Se ha agregado un nuevo producto!',
+                'data' => $product
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al agregar producto.'], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Product $product)
     {
-        return $product;
+        try {
+            return response()->json([
+                'message' => 'Producto obtenido con éxito.',
+                'data' => $product
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener el producto.'], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->all());
-        return response()->json($product, 200);
+        try {
+            $product->update($request->validated());
+            return response()->json([
+                'message' => 'Producto actualizado con éxito.',
+                'data' => $product
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al actualizar el producto.'], 500);
+        }
     }
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return response()->json(null, 204);
+        try {
+            $product->delete();
+            return response()->json([
+                'message' => 'Producto eliminado con éxito.'
+            ], 200); // Cambia a 200 para devolver el mensaje
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al eliminar el producto.'], 500);
+        }
     }
 }

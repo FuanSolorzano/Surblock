@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customers');
             $table->date('sale_date');
             $table->decimal('total', 10, 2);
+            $table->softDeletes(); 
             $table->timestamps();
         });
     }
