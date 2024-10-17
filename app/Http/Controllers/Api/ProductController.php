@@ -7,69 +7,60 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-
+use App\Traits\UploadTrait;
 class ProductController extends Controller
 {
-    public function index()
-    {
-        try {
-            $products = Product::all();
-            return response()->json([
-                'message' => 'Productos obtenidos con éxito.',
-                'data' => $products
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener productos.'], 500);
-        }
-    }
+    use UploadTrait;
 
     public function store(StoreProductRequest $request)
     {
         try {
-            $product = Product::create($request->validated());
+            $data = $request->validated();
+
+            // Manejar la carga de la imagen
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $name = time().'_'.str_replace(' ', '_', $image->getClientOriginalName());
+                $folder = 'uploads/images/';
+                $filePath = $folder . $name;
+                $image->storeAs($folder, $name, 'public');
+                $data['image'] = $filePath;
+            }
+
+            $product = Product::create($data);
+
             return response()->json([
                 'message' => '¡Se ha agregado un nuevo producto!',
                 'data' => $product
             ], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al agregar producto.'], 500);
-        }
-    }
-
-    public function show(Product $product)
-    {
-        try {
-            return response()->json([
-                'message' => 'Producto obtenido con éxito.',
-                'data' => $product
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener el producto.'], 500);
+            return response()->json(['error' => 'Error al agregar producto: ' . $e->getMessage()], 500);
         }
     }
 
     public function update(UpdateProductRequest $request, Product $product)
     {
         try {
-            $product->update($request->validated());
+            $data = $request->validated();
+
+            // Manejar la carga de la imagen
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $name = time().'_'.str_replace(' ', '_', $image->getClientOriginalName());
+                $folder = 'uploads/images/';
+                $filePath = $folder . $name;
+                $image->storeAs($folder, $name, 'public');
+                $data['image'] = $filePath;
+            }
+
+            $product->update($data);
+
             return response()->json([
                 'message' => 'Producto actualizado con éxito.',
                 'data' => $product
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar el producto.'], 500);
-        }
-    }
-
-    public function destroy(Product $product)
-    {
-        try {
-            $product->delete();
-            return response()->json([
-                'message' => 'Producto eliminado con éxito.'
-            ], 200); // Cambia a 200 para devolver el mensaje
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar el producto.'], 500);
+            return response()->json(['error' => 'Error al actualizar el producto: ' . $e->getMessage()], 500);
         }
     }
 }

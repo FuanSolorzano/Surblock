@@ -27,6 +27,7 @@ class StoreProductRequest extends FormRequest
             'description' => 'nullable|string',
             'stock' => 'required|integer',
             'price' => 'required|numeric',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación para la imagen
         ];
     }
 }
