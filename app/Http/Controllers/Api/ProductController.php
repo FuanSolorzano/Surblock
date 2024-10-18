@@ -7,10 +7,28 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Traits\UploadTrait;
+use Illuminate\Support\Facades\Storage;
+
 class ProductController extends Controller
 {
-    use UploadTrait;
+    public function index()
+    {
+        try {
+            $products = Product::all();
+            return response()->json($products);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener los productos: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function show(Product $product)
+    {
+        try {
+            return response()->json($product);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener el producto: ' . $e->getMessage()], 500);
+        }
+    }
 
     public function store(StoreProductRequest $request)
     {
@@ -21,10 +39,8 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $name = time().'_'.str_replace(' ', '_', $image->getClientOriginalName());
-                $folder = 'uploads/images/';
-                $filePath = $folder . $name;
-                $image->storeAs($folder, $name, 'public');
-                $data['image'] = $filePath;
+                $filePath = $image->storeAs('uploads/images', $name, 'public');
+                $data['image'] = 'storage/' . $filePath; // Asegurar la URL completa de la imagen
             }
 
             $product = Product::create($data);
@@ -43,14 +59,16 @@ class ProductController extends Controller
         try {
             $data = $request->validated();
 
-            // Manejar la carga de la imagen
+            // Manejar la actualización de la imagen
             if ($request->hasFile('image')) {
+                // Eliminar la imagen anterior si existe
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
                 $image = $request->file('image');
                 $name = time().'_'.str_replace(' ', '_', $image->getClientOriginalName());
-                $folder = 'uploads/images/';
-                $filePath = $folder . $name;
-                $image->storeAs($folder, $name, 'public');
-                $data['image'] = $filePath;
+                $filePath = $image->storeAs('uploads/images', $name, 'public');
+                $data['image'] = 'storage/' . $filePath; // Asegurar la URL completa de la imagen
             }
 
             $product->update($data);

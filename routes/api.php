@@ -16,7 +16,6 @@ Route::post('/login', [AuthController::class, 'login']);
 // Rutas públicas para ver productos y agregar al carrito
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
-Route::get('/products/search', [ProductController::class, 'search']);
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
 
@@ -32,10 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/remove/{id}', [CartController::class, 'removeFromCart'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
 
-    Route::apiResource('products', ProductController::class);
-    Route::apiResource('customers', CustomerController::class);
-    Route::apiResource('sales', SaleController::class);
-    Route::apiResource('salesdetails', SalesDetailController::class);
+    // Rutas protegidas para administrar productos
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
     // Rutas de compra/checkout (por implementar)
     Route::post('/checkout', [SaleController::class, 'checkout'])->name('checkout');
