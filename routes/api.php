@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Rutas públicas para ver productos y agregar al carrito
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::get('/products/search', [ProductController::class, 'search']);
+Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
+Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
+
 // Rutas protegidas por Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     // Obtener información del usuario autenticado
@@ -20,20 +27,19 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // Rutas de recursos
+    // Rutas protegidas del carrito y recursos
+    Route::post('/cart/update/{id}', [CartController::class, 'updateCart'])->name('cart.update');
+    Route::delete('/cart/remove/{id}', [CartController::class, 'removeFromCart'])->name('cart.remove');
+    Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
+
     Route::apiResource('products', ProductController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('sales', SaleController::class);
     Route::apiResource('salesdetails', SalesDetailController::class);
 
-    // Rutas del carrito
-    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
-    Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
-    Route::post('/cart/update/{id}', [CartController::class, 'updateCart'])->name('cart.update');
-    Route::delete('/cart/remove/{id}', [CartController::class, 'removeFromCart'])->name('cart.remove');
-    Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
+    // Rutas de compra/checkout (por implementar)
+    Route::post('/checkout', [SaleController::class, 'checkout'])->name('checkout');
 
     // Ruta para cerrar sesión (logout)
     Route::post('/logout', [AuthController::class, 'logout']);
 });
-
